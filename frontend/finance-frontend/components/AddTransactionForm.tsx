@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import axios from "../lib/api"
 
 export default function AddTransactionForm({ refresh }: { refresh: (msg?: string) => void }) {
@@ -8,6 +8,18 @@ export default function AddTransactionForm({ refresh }: { refresh: (msg?: string
     const [category, setCategory] = useState("")
     const [description, setDescription] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [currencySymbol, setCurrencySymbol] = useState("₹")
+
+    useEffect(() => {
+        const currency = localStorage.getItem("currency") || "INR"
+        const symbols: Record<string, string> = {
+            INR: "₹",
+            USD: "$",
+            EUR: "€",
+            GBP: "£"
+        }
+        setCurrencySymbol(symbols[currency] || "₹")
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
