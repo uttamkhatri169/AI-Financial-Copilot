@@ -50,7 +50,7 @@ export default function AddTransactionForm({ refresh }: { refresh: (msg?: string
             <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <span className="text-gray-400 group-focus-within:text-indigo-400 transition-colors font-medium">₹</span>
+                        <span className="text-gray-400 group-focus-within:text-indigo-400 transition-colors font-semibold text-sm">{currencySymbol}</span>
                     </div>
                     <input
                         type="number"
@@ -63,7 +63,10 @@ export default function AddTransactionForm({ refresh }: { refresh: (msg?: string
                     />
                 </div>
 
-                <div className="relative">
+                <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400 group-focus-within:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </div>
                     <input
                         type="text"
                         required
@@ -74,7 +77,7 @@ export default function AddTransactionForm({ refresh }: { refresh: (msg?: string
                             setDescription(text)
                             if (text.length > 2) predictCategory(text)
                         }}
-                        className="glass-input py-2.5 text-sm"
+                        className="glass-input pl-9 py-2.5 text-sm"
                     />
                 </div>
 
@@ -88,8 +91,15 @@ export default function AddTransactionForm({ refresh }: { refresh: (msg?: string
                         placeholder="Category (Auto-predicted)"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="glass-input pl-9 py-2.5 text-sm bg-indigo-500/5 focus:bg-white/5" 
+                        className="glass-input pl-9 pr-24 py-2.5 text-sm bg-indigo-500/5 focus:bg-white/5" 
                     />
+                    {category && (
+                        <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-[9px] font-bold text-indigo-300 tracking-wider animate-pulse">
+                                <span>⚡ AI</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <button 
