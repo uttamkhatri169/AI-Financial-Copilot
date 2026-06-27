@@ -5,9 +5,18 @@ import axios from "../lib/api"
 
 export default function AnomalyAlert({ refreshTrigger }: { refreshTrigger?: number }) {
     const [anomalies, setAnomalies] = useState<any[]>([])
+    const [currencySymbol, setCurrencySymbol] = useState("₹")
 
     useEffect(() => {
         fetchAnomalies()
+        const currency = localStorage.getItem("currency") || "INR"
+        const symbols: Record<string, string> = {
+            INR: "₹",
+            USD: "$",
+            EUR: "€",
+            GBP: "£"
+        }
+        setCurrencySymbol(symbols[currency] || "₹")
     }, [refreshTrigger])
 
     const fetchAnomalies = async () => {
@@ -40,7 +49,7 @@ export default function AnomalyAlert({ refreshTrigger }: { refreshTrigger?: numb
                             <p className="text-white font-medium">{a.description}</p>
                         </div>
                         <div className="text-right">
-                            <span className="text-lg font-bold text-red-400">₹{a.amount}</span>
+                            <span className="text-lg font-bold text-red-400">{currencySymbol}{a.amount}</span>
                         </div>
                     </div>
                 ))}

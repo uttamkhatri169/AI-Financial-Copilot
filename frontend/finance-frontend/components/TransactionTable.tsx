@@ -17,6 +17,7 @@ export default function TransactionTable() {
     const [toastMessage, setToastMessage] = useState("")
     const [showToast, setShowToast] = useState(false)
     const [isTableExpanded, setIsTableExpanded] = useState(false)
+    const [currencySymbol, setCurrencySymbol] = useState("₹")
 
     const fetchTransactions = async () => {
         try {
@@ -32,6 +33,14 @@ export default function TransactionTable() {
 
     useEffect(() => {
         fetchTransactions()
+        const currency = localStorage.getItem("currency") || "INR"
+        const symbols: Record<string, string> = {
+            INR: "₹",
+            USD: "$",
+            EUR: "€",
+            GBP: "£"
+        }
+        setCurrencySymbol(symbols[currency] || "₹")
     }, [])
 
     const handleRefresh = (message?: string) => {
@@ -130,7 +139,7 @@ export default function TransactionTable() {
                                         <tr key={t.id} className="hover:bg-white/5 transition-colors group">
                                             <td className="p-4 text-xs font-mono text-gray-500 group-hover:text-indigo-400 transition-colors">#{t.id}</td>
                                             <td className="p-4 font-medium text-white flex items-center gap-1">
-                                                <span className="text-gray-500 text-xs">$</span>
+                                                <span className="text-gray-500 text-xs">{currencySymbol}</span>
                                                 {t.amount?.toFixed ? t.amount.toFixed(2) : t.amount}
                                             </td>
                                             <td className="p-4">

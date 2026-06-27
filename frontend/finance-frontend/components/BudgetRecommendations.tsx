@@ -6,9 +6,18 @@ import axios from "../lib/api"
 export default function BudgetRecommendations({ refreshTrigger }: { refreshTrigger?: number }) {
     const [budgets, setBudgets] = useState<any>({})
     const [isLoading, setIsLoading] = useState(true)
+    const [currencySymbol, setCurrencySymbol] = useState("₹")
 
     useEffect(() => {
         fetchBudgets()
+        const currency = localStorage.getItem("currency") || "INR"
+        const symbols: Record<string, string> = {
+            INR: "₹",
+            USD: "$",
+            EUR: "€",
+            GBP: "£"
+        }
+        setCurrencySymbol(symbols[currency] || "₹")
     }, [refreshTrigger])
 
     const fetchBudgets = async () => {
@@ -55,7 +64,7 @@ export default function BudgetRecommendations({ refreshTrigger }: { refreshTrigg
                                     <span className="font-medium text-gray-200 group-hover/item:text-white transition-colors">{category}</span>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-sm font-bold text-teal-400">₹{parseFloat(amount).toFixed(2)}</span>
+                                    <span className="text-sm font-bold text-teal-400">{currencySymbol}{parseFloat(amount).toFixed(2)}</span>
                                     <p className="text-[10px] text-gray-500 uppercase tracking-wider">Suggested</p>
                                 </div>
                             </div>

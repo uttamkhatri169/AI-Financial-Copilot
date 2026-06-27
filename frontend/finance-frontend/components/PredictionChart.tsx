@@ -4,13 +4,13 @@ import { useEffect, useState } from "react"
 import axios from "../lib/api"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts"
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, currencySymbol }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-gray-900/90 backdrop-blur-md border border-white/10 p-3 rounded-lg shadow-xl">
                 <p className="text-gray-300 font-medium mb-1">{label}</p>
                 <p className="text-pink-400 font-bold">
-                    ₹{payload[0].value.toFixed(2)} <span className="text-xs text-gray-500 font-normal">predicted</span>
+                    {currencySymbol || "₹"}{payload[0].value.toFixed(2)} <span className="text-xs text-gray-500 font-normal">predicted</span>
                 </p>
             </div>
         );
@@ -20,9 +20,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function PredictionChart({ refreshTrigger }: { refreshTrigger?: number }) {
     const [data, setData] = useState<any[]>([])
+    const [currencySymbol, setCurrencySymbol] = useState("₹")
 
     useEffect(() => {
         fetchPrediction()
+        const currency = localStorage.getItem("currency") || "INR"
+        const symbols: Record<string, string> = {
+            INR: "₹",
+            USD: "$",
+            EUR: "€",
+            GBP: "£"
+        }
+        setCurrencySymbol(symbols[currency] || "₹")
     }, [refreshTrigger])
 
     const fetchPrediction = async () => {
@@ -75,9 +84,9 @@ export default function PredictionChart({ refreshTrigger }: { refreshTrigger?: n
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false}
-                    tickFormatter={(value) => `₹${value}`}
+                    tickFormatter={(value) => `${currencySymbol}${value}`}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{fill: '#ffffff05'}} />
+                <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} cursor={{fill: '#ffffff05'}} />
                 <Bar dataKey="amount" fill="url(#colorPred)" radius={[4, 4, 0, 0]} barSize={40} />
             </BarChart>
         </ResponsiveContainer>

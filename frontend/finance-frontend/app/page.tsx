@@ -4,27 +4,44 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import TransactionTable from "../components/TransactionTable"
 import Chatbot from "../components/Chatbot"
+import EditProfileModal from "../components/EditProfileModal"
 
 export default function Home() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [hasToken, setHasToken] = useState(false)
+  const [userName, setUserName] = useState("")
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
+  const [currencyKey, setCurrencyKey] = useState("INR")
 
   useEffect(() => {
     setMounted(true)
     const token = localStorage.getItem("token")
-    if (!token) {
+    if (!token || token === "undefined") {
       router.push("/auth/login")
+    } else {
+      setHasToken(true)
+      setUserName(localStorage.getItem("name") || "User")
+      setCurrencyKey(localStorage.getItem("currency") || "INR")
     }
   }, [router])
 
   const logout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("name")
+    localStorage.removeItem("currency")
     router.push("/auth/login")
   }
 
-  // Prevent hydration errors by not rendering until mounted
-  if (!mounted) return null;
+  const handleProfileUpdated = (updatedName: string, updatedCurrency: string) => {
+    setUserName(updatedName)
+    setCurrencyKey(updatedCurrency)
+  }
+
+  // Prevent hydration errors by not rendering until mounted and verified
+  if (!mounted || !hasToken) return null;
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -47,12 +64,54 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
-              <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full glass-card hover:bg-white/[0.08] transition-colors cursor-pointer border-transparent">
+            <div className="flex items-center gap-4">
+              <div className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full glass-card hover:bg-white/[0.08] transition-colors cursor-pointer border-transparent">
                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></div>
                 <span className="text-sm font-medium text-gray-300">System Online</span>
               </div>
               
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.08] active:bg-white/[0.05] transition-all cursor-pointer shadow-inner group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-[0_0_10px_rgba(99,102,241,0.3)] group-hover:scale-105 transition-transform">
+                    {userName ? userName.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <span className="text-sm font-semibold text-gray-200 hidden sm:inline-block pr-1">{userName || "User"}</span>
+                  <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                {isProfileMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsProfileMenuOpen(false)}></div>
+                    <div className="absolute right-0 mt-2 w-48 rounded-xl bg-gray-950/95 backdrop-blur-xl border border-white/10 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => {
+                          setIsEditProfileOpen(true)
+                          setIsProfileMenuOpen(false)
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left"
+                      >
+                        <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        Edit Profile
+                      </button>
+                      <hr className="border-white/5 my-1" />
+                      <button
+                        onClick={() => {
+                          logout()
+                          setIsProfileMenuOpen(false)
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors text-left font-medium"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={() => setIsChatOpen(true)}
                 className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-500/30 hover:text-indigo-300 transition-colors border border-indigo-500/30 relative group"
@@ -62,16 +121,6 @@ export default function Home() {
                 {/* Notification dot */}
                 <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-pink-500 border-2 border-[--background] rounded-full"></span>
               </button>
-              
-              <button
-                onClick={logout}
-                className="px-6 py-2.5 rounded-xl bg-white/[0.05] hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-300 hover:text-red-400 font-medium transition-all duration-300 flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                </svg>
-                Logout
-              </button>
             </div>
           </div>
         </div>
@@ -79,11 +128,18 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-20">
-        <TransactionTable />
+        <TransactionTable key={currencyKey} />
       </main>
 
       {/* Global Chatbot Slide-over */}
       <Chatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        onProfileUpdated={handleProfileUpdated}
+      />
     </div>
   )
 }

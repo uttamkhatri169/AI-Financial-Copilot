@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import health, transactions
-from app.database.database import engine, Base
+from app.database.database import engine, Base, SessionLocal
 from app.models import transaction
 from app.models import user
 from app.routes import ai_routes
@@ -15,10 +15,18 @@ from app.routes import csv_routes
 
 app = FastAPI()
 
+@app.middleware("http")
+async def db_session_middleware(request, call_next):
+    try:
+        response = await call_next(request)
+        return response
+    finally:
+        SessionLocal.remove()
+
 # Allow frontend to access backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],  # Next.js frontend url
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,6 +34,7 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 
+# Include routers
 app.include_router(health.router)
 app.include_router(transactions.router)
 app.include_router(ai_routes.router)

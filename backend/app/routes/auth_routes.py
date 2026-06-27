@@ -1,6 +1,6 @@
-from fastapi import APIRouter
-from app.schemas.user_schema import UserCreate, UserLogin
-from app.services.auth_service import hash_password, verify_password, create_token
+from fastapi import APIRouter, Depends
+from app.schemas.user_schema import UserCreate, UserLogin, ProfileUpdate
+from app.services.auth_service import hash_password, verify_password, create_token, get_current_user
 from app.database.database import SessionLocal
 from app.models.user import User
 
@@ -16,7 +16,8 @@ def signup(user: UserCreate):
 
     new_user = User(
         email=user.email,
-        password=hashed
+        password=hashed,
+        name=user.name
     )
 
     db.add(new_user)
@@ -41,4 +42,44 @@ def login(user: UserLogin):
 
     token = create_token(db_user.id)
 
-    return {"token": token}
+    return {
+        "token": token,
+        "name": db_user.name
+    }
+
+
+@router.get("/profile")
+def get_profile(user_id: int = Depends(get_current_user)):
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"error": "User not found"}
+    return {
+        "name": user.name,
+        "email": user.email,
+        "status": user.status,
+        "financial_range": user.financial_range,
+        "currency": user.currency or "INR"
+    }
+
+
+@router.put("/profile")
+def update_profile(profile: ProfileUpdate, user_id: int = Depends(get_current_user)):
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"error": "User not found"}
+    
+    # Check if email is already taken by another user
+    if profile.email != user.email:
+        existing = db.query(User).filter(User.email == profile.email).first()
+        if existing:
+            return {"error": "Email is already in use"}
+
+    user.name = profile.name
+    user.email = profile.email
+    user.status = profile.status
+    user.financial_range = profile.financial_range
+    user.currency = profile.currency
+    db.commit()
+    return {"message": "Profile updated successfully"}

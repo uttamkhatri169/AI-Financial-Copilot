@@ -21,8 +21,21 @@ export default function Login() {
                 email,
                 password
             })
+            
+            if (res.data.error) {
+                setError(res.data.error)
+                return
+            }
+
             const token = res.data.token
+            if (!token) {
+                setError("Authentication failed: No token returned.")
+                return
+            }
+
             localStorage.setItem("token", token)
+            localStorage.setItem("name", res.data.name || "User")
+            localStorage.setItem("currency", res.data.currency || "INR")
             router.push("/")
         } catch (err: any) {
             setError(err.response?.data?.detail || "An error occurred during login")
@@ -95,7 +108,7 @@ export default function Login() {
                     
                     <div className="text-center mt-6">
                         <p className="text-sm text-gray-400">
-                            Don't have an account? <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">Sign up</a>
+                            Don't have an account? <a href="/auth/signup" className="text-indigo-400 hover:text-indigo-300 transition-colors">Sign up</a>
                         </p>
                     </div>
                 </form>
